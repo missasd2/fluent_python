@@ -1,18 +1,8 @@
 """
-Vector2d实例有多种表式形式
-大概意思有以下几点：
-
-__repr__正式，__str__ 非正式。
-__str__主要由 str(),format()和print()三个方法调用。
-若定义了__repr__没有定义__str__，那么本该由__str__展示的字符串会由__repr__代替。
-__repr__主要用于调试和开发，而__str__用于为最终用户创建输出。
-__repr__看起来更像一个有效的 Python 表达式，可用于重新创建具有相同值的对象（给定适当的环境）。
-什么是正式？什么是非正式？光听文档上还是太抽象了，那我们就来看看几个 Python 内置对象的__repr__、__str__区别。
-（PS：因为 Python 内置函数 repr() 和 str() 分别调用对象的__repr__和__str__，所以这边就用这两个函数来举例。）
+备选构造方法
 """
-
-from array import array
 import math
+from array import array
 
 
 class Vector2d:
@@ -36,6 +26,20 @@ class Vector2d:
 
     def __bytes__(self):
         return bytes([ord(self.typecode)]) + bytes(array(self.typecode, self))
+
+    # 从字节序列转换成Vector2d实例
+    """
+    类方法使用classmethod装饰器修饰
+    """
+    @classmethod
+    # 通过cls传入类本身
+    def frombytes(cls, octets):
+        # 从第一个字节读取typecode
+        typecode = chr(octets[0])
+        memv = memoryview(octets[1:]).cast(typecode)
+        return cls(*memv)
+
+
 
     def __eq__(self, other):
         return tuple(self) == tuple(other)
