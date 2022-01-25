@@ -1,13 +1,13 @@
 """
 示例9-7 让Vector2d不可变
 """
-
-
 from array import array
 import math
 
 
 class Vector2d:
+
+    __slots__ = ('__x', '__y')
     typecode = "d"
 
     def __init__(self, x, y):
@@ -67,6 +67,8 @@ class Vector2d:
             outer_fmt = "({}, {})"
         components = (format(c, format_spec) for c in coords)
         return outer_fmt.format(*components)
+
+
 
     def angle(self):
         return math.atan2(self.y, self.x)
