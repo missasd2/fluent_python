@@ -1,13 +1,19 @@
 """
-实现__setattr__ 方法，改写类中设置属性的逻辑
+示例10-16
+11.136.241.21
+srx nat zone Intranet
+huawei nat zone
+收敛
 """
 
 
-
+import functools
 import numbers
+import operator
 from array import array
 import reprlib
 import math
+import itertools
 
 
 class Vector:
@@ -32,15 +38,20 @@ class Vector:
         return str(tuple(self))
 
     def __bytes__(self):
-        return (bytes([ord[self.typecode]])+
+        return (bytes([ord[self.typecode]]) +
                 bytes(self._components)
                 )
 
     def __eq__(self, other):
-        return tuple(self) == tuple(other)
+        return len(self) == len(other) and all(a == b for a, b in zip(self, other))
+
+    def __hash__(self):
+        # hashes = (hash(x) for x in self._components)
+        hashes = map(hash, self._components)
+        return functools.reduce(operator.xor, hashes, 0)
 
     def __abs__(self):
-        return math.sqrt(sum(x * x for  x in self))
+        return math.sqrt(sum(x * x for x in self))
 
     def __bool__(self):
         return bool(abs(self))
@@ -71,8 +82,8 @@ class Vector:
 
     def __setattr__(self, name, value):
         cls = type(self)
-        if len(name ) == 1: # 特别处理名称是单个字符的属性
-            if name in cls.shortcut_names: # 如果name是xyzt中的一个，设置特殊的错误消息
+        if len(name) == 1:  # 特别处理名称是单个字符的属性
+            if name in cls.shortcut_names:  # 如果name是xyzt中的一个，设置特殊的错误消息
                 error = "readonly attribute {attr_name!r}"
             elif name.islower():
                 error = "can't set attributes 'a' to 'z' in {cls_name!r}"
@@ -90,11 +101,36 @@ class Vector:
         memv = memoryview(octets[1:]).cast(typecode)
         return cls(memv)
 
+    def angle(self, n):
+        r = math.sqrt(sum(x * x for x in self[n:]))
+        a = math.atan2(r, self[n - 1])
+        if (n == (len(self) - 1)) and (self[-1] < 0):
+            return math.pi * 2 - a
+        else:
+            return a
+
+    def __format__(self, format_spec):
+        if format_spec.endswith("h"):
+            format_spec = format_spec[:-1]
+            coords = itertools.chain([abs(self)], self.angles())
+            outer_fmt = "<{}>"
+        else:
+            coords = self
+            outer_fmt = "({})"
+        components = (format(c, format_spec) for c in coords)
+        return outer_fmt.format(", ".join(components))
+
+
+    # 计算角度
+    def angles(self, n):
+        return (self.angle(n) for n in range(1, len(self)))
+
 
 if __name__ == '__main__':
     v = Vector(range(5))
     print(repr(v))
     print(repr(v.x))
-    v.x = 10
+    # v.x = 10
     print(v.x)
     print(repr(v))
+

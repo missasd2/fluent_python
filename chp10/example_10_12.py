@@ -1,10 +1,10 @@
 """
-实现__setattr__ 方法，改写类中设置属性的逻辑
+哈希归约
+
 """
-
-
-
+import functools
 import numbers
+import operator
 from array import array
 import reprlib
 import math
@@ -37,7 +37,12 @@ class Vector:
                 )
 
     def __eq__(self, other):
-        return tuple(self) == tuple(other)
+        return len(self) == len(other) and all(a == b for a, b in zip(self, other))
+
+    def __hash__(self):
+        # hashes = (hash(x) for x in self._components)
+        hashes = map(hash, self._components)
+        return functools.reduce(operator.xor, hashes, 0)
 
     def __abs__(self):
         return math.sqrt(sum(x * x for  x in self))
@@ -95,6 +100,6 @@ if __name__ == '__main__':
     v = Vector(range(5))
     print(repr(v))
     print(repr(v.x))
-    v.x = 10
+    # v.x = 10
     print(v.x)
     print(repr(v))
